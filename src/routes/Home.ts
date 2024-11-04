@@ -1,15 +1,17 @@
 import { JwtPayload } from "jsonwebtoken";
-import { Routes } from "../interface/Routes.js"
+import { IRoutes } from "../interface/Routes.js"
 import { authMiddleware } from "../middlewares/AuthUser.js";
+import { User } from "../models/UserModel.js";
 
-const Home: Routes = {
+const Home: IRoutes = {
     method: "post",
     path: "/",
     middlewares: [authMiddleware],
     handler(req, res, next) {
         const user = req.user as JwtPayload;
+
         if (user) {
-            return res.json({message: `Olá, ${user.name} seja bem vindo. Voce está acessando uma rota segura!`, user})
+            return res.json({message: `Olá, ${user.data.name} seja bem vindo. Voce está acessando uma rota segura!`, user})
         }
         res.json({message: "Úsuario inexistente."})
     },

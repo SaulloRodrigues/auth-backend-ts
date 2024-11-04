@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path'
 import { HTTPMethods } from '../types/HttpMethods.js';
 import { pathToFileURL } from 'node:url'
+import connectDB from '../services/db.js';
 
 export class App {
     private app: express.Application;
@@ -12,10 +13,15 @@ export class App {
         this.app = express();
         this.middlewares();
         this.initRoutes();
+        this.initDataBase();
     }
 
     private initRoutes(): void {
         this.readRoutes();
+    }
+
+    private async initDataBase():Promise<void> {
+        await connectDB();
     }
 
     private async readRoutes(): Promise<void> {
