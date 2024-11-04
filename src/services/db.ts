@@ -2,11 +2,11 @@ import mongoose from 'mongoose';
 
 const connectDB = async () => {
   try {
-    const uri = 'mongodb+srv://api:Saullo2004!@cluster0.0ppk6kb.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
+    const uri = process.env.APP_URI_DB as string;
     await mongoose.connect(uri);
-    console.log('MongoDB connected successfully!');
+    console.log('Database conectado com sucesso!');
   } catch (error) {
-    console.error('Error connecting to MongoDB:', error);
+    console.error('Erro ao fazer a conexão com o Database:', error);
     process.exit(1);
   }
 };

@@ -6,5 +6,5 @@ export interface IRoutes {
     method: HTTPMethods;
     path: string;
     handler: (req: ICustomRequest , res: Response, next: NextFunction) => void;
-    middlewares?: [(req: ICustomRequest, res: Response, next: NextFunction) => void];
+    middlewares?: Array<(req: ICustomRequest, res: Response, next: NextFunction) => void>;
 }

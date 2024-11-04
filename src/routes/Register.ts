@@ -9,26 +9,31 @@ const Register: IRoutes = {
     async handler(req, res, next) {
         const { email, name, password } = req.body;
 
-        const id = crypto.randomUUID();
-        const token = jwt.sign({ id }, process.env.APP_SECRET as string, { expiresIn: '6h' })
+        if (!email || !name || !password) {
+            return res.status(403).json({ message: "A requisição está faltando alguns parâmetros." })
+        }
 
         try {
+
+            if (await User.findOne({ email })) {
+                return res.status(403).json({ message: "Usuário já existente, tente com outros dados." });
+            }
+
             const newUser = new User({
-                _id: id,
+                _id: crypto.randomUUID(),
                 email: email,
                 password: password,
                 data: {
                     name: name,
                     created_at: now.toISOString(),
                 },
-                token: token
             })
 
             await newUser.save();
 
-            res.status(201).json({message: "Usuário criado com sucesso."})
+            res.status(201).json({ message: "Usuário criado com sucesso." })
         } catch (error) {
-            res.status(500).json({message: "Não foi possivel criar o usuário no momento. Tente novamente mais tarde!"})
+            res.status(500).json({ message: "Não foi possivel criar o usuário no momento. Tente novamente mais tarde!" })
         }
     },
 }

@@ -8,5 +8,4 @@ export interface IUser extends Document {
         photo_url: string,
         created_at: string,
     },
-    token: string
 }

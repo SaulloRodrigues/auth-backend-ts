@@ -1,6 +1,10 @@
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import { IRoutes } from "../interface/Routes.js"
 import { User } from "../models/UserModel.js";
+
+const newToken = (id:string) => {
+    return jwt.sign({ id }, process.env.APP_SECRET as string, { expiresIn: '6h' });
+}
 
 const Auth: IRoutes = {
     method: "post",
@@ -13,22 +17,23 @@ const Auth: IRoutes = {
         }
 
         try {
-            const user = await User.findOne({ email });
-            const wrongCredentials = { message: "As credenciais fornecidas são inválidas." }
 
-            if (!user) {
-                return res.status(404).json(wrongCredentials);
+            const data = await User.findOne({ email });
+
+            if (!data) {
+                return res.status(401).json({message: "Usuário não encontrado."});
             }
 
-            if (password != user.password) {
-                return res.status(403).json(wrongCredentials)
+            if (data?.password != password) {
+                return res.status(403).json({message: "Credenciais inválidas, usuário não autorizado."})
             }
-            const id = user._id;
-            const token = jwt.sign({ id }, process.env.APP_SECRET as string, { expiresIn: '6h' });
-            user.token = token;
-            await user.save();
-            console.log(user)
-            res.status(200).json({ message: "Usuário autenticado com sucesso" });
+
+            const token = newToken(data._id as string);
+            const decoded = jwt.verify(token, process.env.APP_SECRET as string) as JwtPayload;
+            
+            req.user = decoded;
+
+            res.status(200).json({ message: "Usuário autenticado com sucesso", token });
         } catch (error) {
             console.error(error)
             res.status(500).json({ message: "Erro ao autenticar o usuário." })
