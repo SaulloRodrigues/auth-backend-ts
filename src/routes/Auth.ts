@@ -13,7 +13,7 @@ const Auth: IRoutes = {
         const { email, password } = req.body;
 
         if (!email || !password) {
-            return res.status(400).json({ message: "Você deixou de fornecer algumas das credenciais." })
+            return res.status(400).json({ error: "Você deixou de fornecer algumas das credenciais." })
         }
 
         try {
@@ -21,22 +21,23 @@ const Auth: IRoutes = {
             const data = await User.findOne({ email });
 
             if (!data) {
-                return res.status(401).json({message: "Usuário não encontrado."});
+                return res.status(401).json({error: "Usuário não encontrado."});
             }
 
             if (data?.password != password) {
-                return res.status(403).json({message: "Credenciais inválidas, usuário não autorizado."})
+                return res.status(403).json({error: "Credenciais inválidas, usuário não autorizado."})
             }
 
             const token = newToken(data._id as string);
+            
             const decoded = jwt.verify(token, process.env.APP_SECRET as string) as JwtPayload;
             
             req.user = decoded;
 
-            res.status(200).json({ message: "Usuário autenticado com sucesso", token });
+            res.status(200).json({ error: "Usuário autenticado com sucesso", token });
         } catch (error) {
             console.error(error)
-            res.status(500).json({ message: "Erro ao autenticar o usuário." })
+            res.status(500).json({ error: "Erro ao autenticar o usuário." })
         }
 
     },

@@ -21,7 +21,7 @@ export const authJWT = async (req: ICustomRequest, res: Response, next: NextFunc
         req.user = decoded as JwtPayload;
         next();
     } catch (error) {
-        return res.status(403).json({ error: 'Token inválido ou expirado' });
+        return res.status(403).json({ error: 'Token inválido ou expirado.' });
     }
 
 }
