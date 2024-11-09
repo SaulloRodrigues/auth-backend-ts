@@ -2,12 +2,13 @@ import { Response, NextFunction, json } from 'express';
 import { ICustomRequest } from '../interface/CustomRequest.js';
 import { IUser } from '../interface/User.js';
 import { User } from '../models/UserModel.js';
-import { JwtPayload } from 'jsonwebtoken';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 
 class UserController {
     async getUser(req: ICustomRequest, res: Response, next: NextFunction): Promise<void> {
         const payload = req.user as JwtPayload;
         try {
+            console.log(req.ip)
             const user = await User.findOne({ _id: payload.id }) as IUser;
             if (!user) {
                 res.status(404).json({ error: "Usuário não encontrado." });
@@ -16,6 +17,20 @@ class UserController {
             res.status(200).json(user)
         } catch (error) {
             res.status(500).json({ error: "Não foi possivel procurar o usuario." });
+        }
+    }
+
+    async verifyUserToken(req: ICustomRequest, res: Response, next: NextFunction): Promise<void> {
+        const payload = req.user as JwtPayload;
+        try {
+            const user = await User.findOne({ _id: payload.id }) as IUser;
+            if (!user) {
+                res.status(404).json({ error: "Usuário inválido.", authorized: false });
+                return;
+            }
+            res.status(200).json({ authorized: true });
+        } catch (error) {
+            res.status(500).json({ error: "Não foi possivel verificar o usuário." });
         }
     }
 
@@ -65,6 +80,36 @@ class UserController {
         }
     }
 
+    async authenticateUser(req: ICustomRequest, res: Response, next: NextFunction): Promise<void> {
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            res.status(400).json({ error: "Você deixou de fornecer algumas das credenciais.", authorized: false })
+            return;
+        }
+
+        try {
+            const user = await User.findOne({ email });
+
+            if (!user) {
+                res.status(401).json({ error: "Usuário não encontrado.", authorized: false });
+                return
+            }
+
+            if (user.password != password) {
+                res.status(404).json({ error: "Credencias inválidas.", authorized: false });
+                return
+            }
+            console.log("passou")
+            const token = jwt.sign({ id: user._id }, process.env.APP_SECRET as string, { expiresIn: '6h' });
+            
+            res.status(200).json({ message: "Usuário autorizado.", token: token, authorized: true });
+        } catch (error) {
+            console.error(error)
+            res.status(500).json({ error: "Não foi possivel autenticar o usuário.", authorized: false });
+        }
+    }
+
     async updateUser(req: ICustomRequest, res: Response, next: NextFunction): Promise<void> {
         const payload = req.user as JwtPayload;
 
@@ -89,7 +134,7 @@ class UserController {
                     fieldsToUpdate[key as keyof IUser] = value;
                 }
             }
-    
+
             await user.updateOne({ $set: fieldsToUpdate });
 
             res.status(200).json({ message: "Usuário atualizado com sucesso." });

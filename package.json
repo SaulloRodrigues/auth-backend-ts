@@ -5,6 +5,7 @@
   "author": "Saullo <thesaullodev@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
     "helmet": "^8.0.0",
@@ -17,10 +18,12 @@
     "start": "node ."
   },
   "devDependencies": {
+    "@types/cors": "^2",
     "@types/express": "^5.0.0",
     "@types/jsonwebtoken": "^9.0.7",
     "ts-node": "^10.9.2",
     "typescript": "^5.6.3"
   },
-  "type": "module"
+  "type": "module",
+  "packageManager": "yarn@4.5.1+sha512.341db9396b6e289fecc30cd7ab3af65060e05ebff4b3b47547b278b9e67b08f485ecd8c79006b405446262142c7a38154445ef7f17c1d5d1de7d90bf9ce7054d"
 }

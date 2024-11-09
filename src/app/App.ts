@@ -6,7 +6,7 @@ import { HTTPMethods } from '../types/HttpMethods.js';
 import { pathToFileURL } from 'node:url'
 import connectDB from '../services/db.js';
 import { IRoutes } from '../interface/Routes.js';
-
+import cors from 'cors'
 export class App {
     private app: express.Application;
 
@@ -64,6 +64,7 @@ export class App {
     }
 
     private middlewares(): void {
+        this.app.use(cors())
         this.app.use(express.json());
         this.app.use(helmet());
     }

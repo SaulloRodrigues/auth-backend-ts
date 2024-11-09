@@ -19,9 +19,20 @@ const User: Array<IRoutes> = [
     },
     {
         method: 'put',
-        path: '/user/update?',
+        path: '/user/update',
         middlewares: secureRoutes,
         handler: UserController.updateUser.bind(UserController)
+    },
+    {
+        method: 'post',
+        path: '/user/auth',
+        handler: UserController.authenticateUser.bind(UserController)
+    },
+    {
+        method: 'post',
+        path: '/user/verify',
+        middlewares: secureRoutes,
+        handler: UserController.verifyUserToken.bind(UserController)
     },
     {
         method: 'delete',
