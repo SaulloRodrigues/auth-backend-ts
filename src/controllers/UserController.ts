@@ -5,16 +5,16 @@ import { User } from '../models/UserModel.js';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 
 class UserController {
+
     async getUser(req: ICustomRequest, res: Response, next: NextFunction): Promise<void> {
         const payload = req.user as JwtPayload;
         try {
-            console.log(req.ip)
             const user = await User.findOne({ _id: payload.id }) as IUser;
             if (!user) {
                 res.status(404).json({ error: "Usuário não encontrado." });
                 return;
             }
-            res.status(200).json(user)
+            res.status(200).json(user);
         } catch (error) {
             res.status(500).json({ error: "Não foi possivel procurar o usuario." });
         }
@@ -28,10 +28,14 @@ class UserController {
                 res.status(404).json({ error: "Usuário inválido.", authorized: false });
                 return;
             }
-            res.status(200).json({ authorized: true });
+            res.status(200).json({message: 'Usuário autorizado com sucesso'});
         } catch (error) {
             res.status(500).json({ error: "Não foi possivel verificar o usuário." });
         }
+    }
+
+    async logoutUser(req: ICustomRequest, res: Response, next: NextFunction): Promise<void> {
+        const teste =
     }
 
     async createUser(req: ICustomRequest, res: Response, next: NextFunction): Promise<void> {
@@ -84,7 +88,7 @@ class UserController {
         const { email, password } = req.body;
 
         if (!email || !password) {
-            res.status(400).json({ error: "Você deixou de fornecer algumas das credenciais.", authorized: false })
+            res.status(400).json({ error: "Você deixou de fornecer algumas das credenciais."})
             return;
         }
 
@@ -92,21 +96,30 @@ class UserController {
             const user = await User.findOne({ email });
 
             if (!user) {
-                res.status(401).json({ error: "Usuário não encontrado.", authorized: false });
+                res.status(401).json({ error: "Usuário não encontrado." });
                 return
             }
 
             if (user.password != password) {
-                res.status(404).json({ error: "Credencias inválidas.", authorized: false });
+                res.status(401).json({ error: "Credencias inválidas."});
                 return
             }
-            console.log("passou")
+
             const token = jwt.sign({ id: user._id }, process.env.APP_SECRET as string, { expiresIn: '6h' });
+
+            const isProductionMode:boolean = process.env.NODE_MODE === 'production';
+
+            res.cookie('user-data', token, {
+                sameSite: 'strict',
+                httpOnly: true,
+                secure: isProductionMode,
+                maxAge: 3600000          // Tempo de expiração do cookie (ex: 1 hora)
+              });              
             
-            res.status(200).json({ message: "Usuário autorizado.", token: token, authorized: true });
+            res.status(200).json({ message: "Usuário autoriza com sucesso."});
         } catch (error) {
             console.error(error)
-            res.status(500).json({ error: "Não foi possivel autenticar o usuário.", authorized: false });
+            res.status(500).json({ error: "Não foi possivel autenticar o usuário."});
         }
     }
 

@@ -7,6 +7,16 @@ import { pathToFileURL } from 'node:url'
 import connectDB from '../services/db.js';
 import { IRoutes } from '../interface/Routes.js';
 import cors from 'cors'
+import cookieParser from 'cookie-parser';
+
+const isProductionMode:boolean = process.env.NODE_MODE === 'production';
+const allowedOrigins = isProductionMode ? 'https://meusite.com' : 'http://localhost:3000';
+const corsOptions = {
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    origin: allowedOrigins
+}
+
 export class App {
     private app: express.Application;
 
@@ -64,9 +74,10 @@ export class App {
     }
 
     private middlewares(): void {
-        this.app.use(cors())
-        this.app.use(express.json());
+        this.app.use(cors(corsOptions))
         this.app.use(helmet());
+        this.app.use(cookieParser());
+        this.app.use(express.json());
     }
 
     public init(port: string): void {
