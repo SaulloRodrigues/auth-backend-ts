@@ -25,14 +25,14 @@ const User: Array<IRoutes> = [
     },
     {
         method: 'post',
-        path: '/user/auth',
-        handler: UserController.authenticateUser.bind(UserController)
+        path: '/user/login',
+        handler: UserController.signInUser.bind(UserController)
     },
     {
         method: 'post',
-        path: '/user/verify',
+        path: '/user/logout',
         middlewares: secureRoutes,
-        handler: UserController.verifyUserToken.bind(UserController)
+        handler: UserController.signOutUser.bind(UserController)
     },
     {
         method: 'delete',

@@ -7,39 +7,24 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 class UserController {
 
     async getUser(req: ICustomRequest, res: Response, next: NextFunction): Promise<void> {
+        console.log("FOI SOLICITADO O GET USER")
         const payload = req.user as JwtPayload;
         try {
-            const user = await User.findOne({ _id: payload.id }) as IUser;
+            const user = await User.findOne({ _id: payload.id }).select("-password -email -__v -_id") as IUser;
             if (!user) {
                 res.status(404).json({ error: "Usuário não encontrado." });
                 return;
             }
+            console.log(user)
             res.status(200).json(user);
         } catch (error) {
             res.status(500).json({ error: "Não foi possivel procurar o usuario." });
         }
     }
 
-    async verifyUserToken(req: ICustomRequest, res: Response, next: NextFunction): Promise<void> {
-        const payload = req.user as JwtPayload;
-        try {
-            const user = await User.findOne({ _id: payload.id }) as IUser;
-            if (!user) {
-                res.status(404).json({ error: "Usuário inválido.", authorized: false });
-                return;
-            }
-            res.status(200).json({message: 'Usuário autorizado com sucesso'});
-        } catch (error) {
-            res.status(500).json({ error: "Não foi possivel verificar o usuário." });
-        }
-    }
-
-    async logoutUser(req: ICustomRequest, res: Response, next: NextFunction): Promise<void> {
-        const teste =
-    }
-
     async createUser(req: ICustomRequest, res: Response, next: NextFunction): Promise<void> {
-        const { email, name, password } = req.body;
+        const { email, name, password, photo_url } = req.body;
+        console.log("FOI SOLICITADO O CREATE USER")
 
         if (!email || !name || !password) {
             res.status(403).json({ error: "A requisição está faltando alguns parâmetros." });
@@ -60,6 +45,7 @@ class UserController {
                 password: password,
                 name: name,
                 created_at: Date.now(),
+                photo_url: photo_url || null
             })
 
             await newUser.save();
@@ -72,6 +58,7 @@ class UserController {
 
     async deleteUser(req: ICustomRequest, res: Response, next: NextFunction): Promise<void> {
         const payload = req.user as JwtPayload;
+        console.log("FOI SOLICITADO O DELETE USER")
         try {
             const user = await User.findByIdAndDelete(payload.id) as IUser;
             if (!user) {
@@ -84,11 +71,11 @@ class UserController {
         }
     }
 
-    async authenticateUser(req: ICustomRequest, res: Response, next: NextFunction): Promise<void> {
+    async signInUser(req: ICustomRequest, res: Response, next: NextFunction): Promise<void> {
         const { email, password } = req.body;
-
+        console.log("FOI SOLICITADO O LOGIN")
         if (!email || !password) {
-            res.status(400).json({ error: "Você deixou de fornecer algumas das credenciais."})
+            res.status(400).json({ error: "Você deixou de fornecer algumas das credenciais." })
             return;
         }
 
@@ -101,30 +88,45 @@ class UserController {
             }
 
             if (user.password != password) {
-                res.status(401).json({ error: "Credencias inválidas."});
+                res.status(401).json({ error: "Credencias inválidas." });
                 return
             }
 
             const token = jwt.sign({ id: user._id }, process.env.APP_SECRET as string, { expiresIn: '6h' });
 
-            const isProductionMode:boolean = process.env.NODE_MODE === 'production';
+            const isProductionMode: boolean = process.env.NODE_MODE === 'production';
 
             res.cookie('user-data', token, {
                 sameSite: 'strict',
                 httpOnly: true,
                 secure: isProductionMode,
-                maxAge: 3600000          // Tempo de expiração do cookie (ex: 1 hora)
-              });              
-            
-            res.status(200).json({ message: "Usuário autoriza com sucesso."});
+                maxAge: 6 * 3600000          // Tempo de expiração do cookie (6 horas)
+            });
+
+            res.status(200).json({ message: "Usuário autorizado com sucesso." });
         } catch (error) {
-            console.error(error)
-            res.status(500).json({ error: "Não foi possivel autenticar o usuário."});
+            res.status(500).json({ error: "Não foi possivel autenticar o usuário." });
+        }
+    }
+
+    async signOutUser(req: ICustomRequest, res: Response, next: NextFunction): Promise<boolean | unknown> {
+        const payload = req.user as JwtPayload;
+        console.log("FOI SOLICITADO O LOGOUT")
+        try {
+            const user = User.findById(payload.id);
+            if (!user) {
+                return res.status(401).json({error: "Usuário com credenciais inexistentes."})
+            }
+            res.cookie('user-data', '', { expires: new Date(0), httpOnly: true });
+            res.status(200).json({message: "Usuário deslogado com sucesso."})
+        } catch (error) {
+            res.status(500).json({message: "Aconteceu um erro ao deslogar o usuário."})
         }
     }
 
     async updateUser(req: ICustomRequest, res: Response, next: NextFunction): Promise<void> {
         const payload = req.user as JwtPayload;
+        console.log("FOI SOLICITADO O UPDATE USER")
 
         if (!req.body) {
             res.status(403).json({ error: "Você deixou de fornecer as credenciais" });
