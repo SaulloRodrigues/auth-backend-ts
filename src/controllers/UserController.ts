@@ -7,7 +7,6 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 class UserController {
 
     async getUser(req: ICustomRequest, res: Response, next: NextFunction): Promise<void> {
-        console.log("FOI SOLICITADO O GET USER")
         const payload = req.user as JwtPayload;
         try {
             const user = await User.findOne({ _id: payload.id }).select("-password -email -__v -_id") as IUser;
@@ -24,7 +23,6 @@ class UserController {
 
     async createUser(req: ICustomRequest, res: Response, next: NextFunction): Promise<void> {
         const { email, name, password, photo_url } = req.body;
-        console.log("FOI SOLICITADO O CREATE USER")
 
         if (!email || !name || !password) {
             res.status(403).json({ error: "A requisição está faltando alguns parâmetros." });
@@ -58,7 +56,6 @@ class UserController {
 
     async deleteUser(req: ICustomRequest, res: Response, next: NextFunction): Promise<void> {
         const payload = req.user as JwtPayload;
-        console.log("FOI SOLICITADO O DELETE USER")
         try {
             const user = await User.findByIdAndDelete(payload.id) as IUser;
             if (!user) {
@@ -73,7 +70,6 @@ class UserController {
 
     async signInUser(req: ICustomRequest, res: Response, next: NextFunction): Promise<void> {
         const { email, password } = req.body;
-        console.log("FOI SOLICITADO O LOGIN")
         if (!email || !password) {
             res.status(400).json({ error: "Você deixou de fornecer algumas das credenciais." })
             return;
@@ -111,7 +107,6 @@ class UserController {
 
     async signOutUser(req: ICustomRequest, res: Response, next: NextFunction): Promise<boolean | unknown> {
         const payload = req.user as JwtPayload;
-        console.log("FOI SOLICITADO O LOGOUT")
         try {
             const user = User.findById(payload.id);
             if (!user) {
@@ -126,7 +121,6 @@ class UserController {
 
     async updateUser(req: ICustomRequest, res: Response, next: NextFunction): Promise<void> {
         const payload = req.user as JwtPayload;
-        console.log("FOI SOLICITADO O UPDATE USER")
 
         if (!req.body) {
             res.status(403).json({ error: "Você deixou de fornecer as credenciais" });
